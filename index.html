@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>チーム対抗 数字クリックゲーム</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      background-color: #f0f0f0;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+    }
+
+    #controls {
+      margin: 20px 0;
+    }
+
+    #teamSelect {
+      font-size: 16px;
+      padding: 5px 10px;
+    }
+
+    #scoreBoard {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+      margin-top: 10px;
+      font-size: 18px;
+    }
+
+    .teamScore {
+      padding: 10px 15px;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      min-width: 130px;
+      text-align: center;
+    }
+
+    #numberContainer {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 30px;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .number {
+      width: 48px;
+      height: 48px;
+      background: white;
+      border: 1px solid #999;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.3s, color 0.3s, transform 0.2s;
+    }
+
+    .selected {
+      background-color: orange;
+      color: white;
+      font-weight: bold;
+    }
+
+    .confirmed {
+      background-color: gold;
+      color: red;
+      pointer-events: none;
+      font-weight: bold;
+    }
+
+    .celebrate {
+      animation: pop 0.4s ease-out, flash 1s ease-in-out;
+      box-shadow: 0 0 12px 4px gold;
+    }
+
+    @keyframes pop {
+      0%   { transform: scale(1); }
+      50%  { transform: scale(1.4); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes flash {
+      0% { background-color: gold; box-shadow: 0 0 0px gold; }
+      50% { background-color: yellow; box-shadow: 0 0 20px orange; }
+      100% { background-color: gold; box-shadow: 0 0 0px gold; }
+    }
+
+    #resetButton {
+      margin-top: 30px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    #resetButton:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+
+<h1>チーム対抗 数字クリックゲーム</h1>
+
+<div id="controls">
+  <label for="teamSelect">得点を入れるチーム：</label>
+  <select id="teamSelect">
+    <option value="">-- チームを選択 --</option>
+    <option value="team1">チーム1</option>
+    <option value="team2">チーム2</option>
+    <option value="team3">チーム3</option>
+    <option value="team4">チーム4</option>
+  </select>
+</div>
+
+<div id="scoreBoard">
+  <div class="teamScore" id="score-team1">チーム1: 0 点</div>
+  <div class="teamScore" id="score-team2">チーム2: 0 点</div>
+  <div class="teamScore" id="score-team3">チーム3: 0 点</div>
+  <div class="teamScore" id="score-team4">チーム4: 0 点</div>
+</div>
+
+<div id="numberContainer"></div>
+
+<button id="resetButton">リセット</button>
+
+<script>
+  const numberContainer = document.getElementById('numberContainer');
+  const teamSelect = document.getElementById('teamSelect');
+  const resetButton = document.getElementById('resetButton');
+
+  const scores = {
+    team1: 0,
+    team2: 0,
+    team3: 0,
+    team4: 0
+  };
+
+  let selectedNumberButton = null;
+
+  function updateScores() {
+    for (let team in scores) {
+      document.getElementById(`score-${team}`).textContent =
+        `${team.replace('team', 'チーム')}: ${scores[team]} 点`;
+    }
+  }
+
+  function handleTeamSelectChange() {
+    if (!selectedNumberButton) return;
+
+    const selectedTeam = teamSelect.value;
+    if (!selectedTeam || !scores.hasOwnProperty(selectedTeam)) return;
+
+    scores[selectedTeam]++;
+    updateScores();
+
+    selectedNumberButton.classList.remove('selected');
+    selectedNumberButton.classList.add('confirmed', 'celebrate');
+
+    setTimeout(() => {
+      selectedNumberButton.classList.remove('celebrate');
+    }, 1000);
+
+    selectedNumberButton = null;
+    teamSelect.value = "";
+  }
+
+  function generateNumbers() {
+    numberContainer.innerHTML = '';
+    selectedNumberButton = null;
+    teamSelect.value = "";
+
+    const numbers = Array.from({ length: 100 }, (_, i) => i + 1);
+    const shuffled = numbers.sort(() => Math.random() - 0.5);
+
+    shuffled.forEach(num => {
+      const btn = document.createElement('div');
+      btn.className = 'number';
+      btn.textContent = num;
+
+      btn.addEventListener('click', () => {
+        if (btn.classList.contains('confirmed')) return;
+
+        if (selectedNumberButton && selectedNumberButton !== btn) {
+          selectedNumberButton.classList.remove('selected');
+        }
+
+        selectedNumberButton = btn;
+        btn.classList.add('selected');
+      });
+
+      numberContainer.appendChild(btn);
+    });
+  }
+
+  teamSelect.addEventListener('change', handleTeamSelectChange);
+  resetButton.addEventListener('click', generateNumbers);
+
+  // 初回起動時
+  generateNumbers();
+</script>
+
+</body>
+</html>
